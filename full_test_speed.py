@@ -20,6 +20,7 @@ _shell = spur.LocalShell()
 _cli = Client(timeout=100)
 _pg_badger_path = '/var/lib/postgresql/9.3/main/pg_log'
 _output_path = '/tmp'
+_odoo_port = 10069
 
 
 def start_instance(container):
@@ -70,7 +71,7 @@ def run_individual_tests():
     for lines in _nlines:
         load_process()
         start_time_test = timeit.default_timer()
-        run_test(lines, _db_name)
+        run_test(lines, _db_name, _odoo_port)
         total_time_test = timeit.default_timer() - start_time_test
         print 'Test with {lines} lines: {time}'.format(lines=lines, time=total_time_test)
         run_badger(_pg_badger_path, _output_path, '{}_lines_test'.format(lines))
@@ -84,7 +85,7 @@ def run_all_tests():
     start_time_test = timeit.default_timer()
     for lines in _nlines:
         start_time_test_line = timeit.default_timer()
-        run_test(lines, _db_name)
+        run_test(lines, _db_name, _odoo_port)
         total_time_test_line = timeit.default_timer() - start_time_test_line
         print 'Full test with {lines} lines: {time}'.format(lines=lines, time=total_time_test_line)
     total_time_test = timeit.default_timer() - start_time_test
@@ -92,8 +93,11 @@ def run_all_tests():
     run_badger('/var/lib/postgresql/9.3/main/pg_log', '/tmp', 'all_tests')
 
 
-def run_test(lines, db_name):
-    test_cmd = 'python test_speed.py -l {nlines} -dbo {dbname}'.format(nlines=lines, dbname=db_name)
+def run_test(lines, db_name, odoo_port):
+    test_cmd = 'python test_speed.py -l {nlines} -dbo {dbname} -op {port}'.format(
+        nlines=lines,
+        dbname=db_name,
+        port=odoo_port)
     res_test = _shell.run(shlex.split(test_cmd))
     print res_test
 

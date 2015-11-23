@@ -9,11 +9,13 @@ import string
               help='Password Origin')
 @click.option('-dbo', default='performance',
               help='DB Origin')
+@click.option('-op', default=8069,
+              help='Odoo RPC port')
 @click.option('-uo', default='admin',
               help='your email or login')
 @click.option('-l', '--line_count', default=1,
               help='IF of the sale order that you want to duplicate')
-def duplicate_sale_order(po, dbo, uo, line_count):
+def duplicate_sale_order(po, op, dbo, uo, line_count):
     """
     If you dont know how to execute this script use
     python generate_sale.py --help
@@ -26,7 +28,7 @@ def duplicate_sale_order(po, dbo, uo, line_count):
     con = odoorpc.ODOO(
         'localhost',
         timeout=9999,
-        port=8069)
+        port=op)
     con.login(dbo, uo, po, )
     pids = con.execute('product.product',
                        'search',

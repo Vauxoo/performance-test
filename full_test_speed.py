@@ -34,9 +34,11 @@ def stop_instance(container):
     _cli.exec_start(exec_id.get('Id'))
 
 
-def dropdb(db_name):
+def dropdb(db_name, db_port):
     print 'Drop database'
-    dropdb_cmd = 'sudo su postgres -c "dropdb {dbname}"'.format(dbname=db_name)
+    dropdb_cmd = 'sudo su postgres -c "dropdb {dbname} -p {port}"'.format(
+        dbname=db_name,
+        port=db_port)
     _shell.run(shlex.split(dropdb_cmd), allow_error=True)
 
 
@@ -56,7 +58,7 @@ def load_dump(owner, db_name, db_port, dump_path, pgbadger_path):
 def load_process():
     print 'Load process'
     stop_instance(_container)
-    dropdb(_db_name)
+    dropdb(_db_name, _db_port)
     load_dump(_db_user, _db_name, _db_port, os.path.join(_output_path, _dump), _pg_badger_path)
     start_instance(_container)
     time.sleep(5)
@@ -119,6 +121,7 @@ def main():
     print 'Starting tests...be patient.'
     start_time = timeit.default_timer()
     run_individual_tests()
+    run_all_tests()
     end_time = timeit.default_timer()
     total_time = end_time - start_time
     print "Total execution time {}".format(total_time)

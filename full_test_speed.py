@@ -18,7 +18,7 @@ _dump = 'performance.sql'
 _container = 'performance_yoytec80'
 _shell = spur.LocalShell()
 _cli = Client(timeout=100)
-_pg_badger_path = '/var/lib/postgresql/9.3/main/pg_log'
+_pg_badger_path = '/var/lib/postgresql/9.3/performance/pg_log'
 _output_path = '/tmp'
 _odoo_port = 10069
 
@@ -90,7 +90,7 @@ def run_all_tests():
         print 'Full test with {lines} lines: {time}'.format(lines=lines, time=total_time_test_line)
     total_time_test = timeit.default_timer() - start_time_test
     print 'Full test total time: {}'.format(total_time_test)
-    run_badger('/var/lib/postgresql/9.3/main/pg_log', '/tmp', 'all_tests')
+    run_badger(_pg_badger_path, '/tmp', 'all_tests')
 
 
 def run_test(lines, db_name, odoo_port):

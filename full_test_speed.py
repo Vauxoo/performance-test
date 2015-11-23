@@ -10,9 +10,9 @@ import glob
 
 
 _nlines = [1, 50, 100]
-_db_name = 'performance'
+_db_name = 'default'
 _db_user = 'performance'
-_db_pass = 'RG2RUjdHHURPdmuqhU'
+_db_pass = ''
 _db_port = 5437
 _dump = 'performance.sql'
 _container = 'performance_yoytec80'
@@ -57,7 +57,7 @@ def load_process():
     print 'Load process'
     stop_instance(_container)
     dropdb(_db_name)
-    load_dump(_db_user, _db_name, _dump, _pg_badger_path)
+    load_dump(_db_user, _db_name, _db_port, _dump, _pg_badger_path)
     start_instance(_container)
     time.sleep(5)
 

@@ -70,7 +70,7 @@ def run_individual_tests():
     for lines in _nlines:
         load_process()
         start_time_test = timeit.default_timer()
-        run_test(lines)
+        run_test(lines, _db_name)
         total_time_test = timeit.default_timer() - start_time_test
         print 'Test with {lines} lines: {time}'.format(lines=lines, time=total_time_test)
         run_badger(_pg_badger_path, _output_path, '{}_lines_test'.format(lines))
@@ -84,7 +84,7 @@ def run_all_tests():
     start_time_test = timeit.default_timer()
     for lines in _nlines:
         start_time_test_line = timeit.default_timer()
-        run_test(lines)
+        run_test(lines, _db_name)
         total_time_test_line = timeit.default_timer() - start_time_test_line
         print 'Full test with {lines} lines: {time}'.format(lines=lines, time=total_time_test_line)
     total_time_test = timeit.default_timer() - start_time_test
@@ -92,8 +92,8 @@ def run_all_tests():
     run_badger('/var/lib/postgresql/9.3/main/pg_log', '/tmp', 'all_tests')
 
 
-def run_test(lines):
-    test_cmd = 'python test_speed.py -l {nlines}'.format(nlines=lines)
+def run_test(lines, db_name):
+    test_cmd = 'python test_speed.py -l {nlines} -dbo {dbname}'.format(nlines=lines, dbname=db_name)
     res_test = _shell.run(shlex.split(test_cmd))
     print res_test
 

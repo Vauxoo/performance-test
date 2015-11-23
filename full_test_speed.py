@@ -57,7 +57,7 @@ def load_process():
     print 'Load process'
     stop_instance(_container)
     dropdb(_db_name)
-    load_dump(_db_user, _db_name, _db_port, _dump, _pg_badger_path)
+    load_dump(_db_user, _db_name, _db_port, os.path.join(_output_path, _dump), _pg_badger_path)
     start_instance(_container)
     time.sleep(5)
 

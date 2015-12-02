@@ -33,8 +33,11 @@ def duplicate_sale_order(po, op, dbo, uo, line_count):
     pids = con.execute('product.product',
                        'search',
                        [('type', '<>', 'service'), ('type', '<>', 'consu')])
+    partnerids = con.execute('res.partner',
+                             'search',
+                             [('is_company', '=', True)])
     sale_order_id = con.execute('sale.order', 'create', {
-        'partner_id': 20,
+        'partner_id': random.choice(partnerids),
         })
     click.echo('+ Created order : {}'.format(sale_order_id))
     stock = con.execute('stock.location', 'search', [('name', '=', 'Stock')])
@@ -48,17 +51,24 @@ def duplicate_sale_order(po, op, dbo, uo, line_count):
             {
                 'order_id': sale_order_id,
                 'product_id': pid,
-                'product_uom_qty': 5,
+                'product_uom_qty': 1,
                 'name': 'Random product line {}'.format(linec),
             }
         )
-        name = u''.join(random.choice(string.letters+string.digits) for letter in range(6))
+        # name = u''.join(random.choice(string.letters+string.digits) for letter in range(6))
         lot_id = con.execute('stock.production.lot',
                              'create',
-                             {'name': name, 'product_id': pid})
+                             {
+                                 # 'name': name,
+                                 'product_id': pid
+                             })
         wiz_id = con.execute('stock.change.product.qty', 'create',
-                             {'location_id': 12, 'new_quantity': 100,
-                              'product_id': pid, 'lot_id': lot_id})
+                             {
+                                 'location_id': 12,
+                                 'new_quantity': 1,
+                                 'product_id': pid,
+                                 'lot_id': lot_id
+                             })
         con.execute('stock.change.product.qty', 'change_product_qty', wiz_id)
     click.echo('+- Added {} lines to order {}'.format(line_count, sale_order_id))
     sale_order = con.env['sale.order']
@@ -87,17 +97,23 @@ def duplicate_sale_order(po, op, dbo, uo, line_count):
                     puom = con.env['stock.move'].browse(uom[0])
                     item = con.execute('stock.transfer_details_items',
                                        'create',
-                                       {'product_id': pid,
-                                        'sourceloc_id': stock[0], 'destinationloc_id': destination,
-                                        'product_uom_id': puom.product_uom.id, 'quantity': 5})
+                                       {
+                                           'product_id': pid,
+                                           'sourceloc_id': stock[0],
+                                           'destinationloc_id': destination,
+                                           'product_uom_id': puom.product_uom.id,
+                                           'quantity': 1
+                                       })
                     item_details_list.append(item)
                     pick.force_assign()
                 created_id = con.execute('stock.transfer_details',
                                          'create',
-                                         {'picking_id': pick.id,
-                                          'picking_source_location_id': stock[0],
-                                          'picking_destination_location_id': destination,
-                                          'item_ids': [(6, 0, item_details_list)]})
+                                         {
+                                             'picking_id': pick.id,
+                                             'picking_source_location_id': stock[0],
+                                             'picking_destination_location_id': destination,
+                                             'item_ids': [(6, 0, item_details_list)]
+                                         })
                 try:
                     con.execute('stock.transfer_details',
                                 'do_detailed_transfer', [created_id])
@@ -107,7 +123,6 @@ def duplicate_sale_order(po, op, dbo, uo, line_count):
             else:
                 validated += 1
                 click.echo('+-- Validated {}'.format(validated))
-    click.echo('+ Process Completed')
     amount = sale_invoice.amount_total
     period_ids = con.env['account.period'].search([])
     period_id = con.env['account.period'].browse(period_ids[0])
@@ -125,17 +140,21 @@ def duplicate_sale_order(po, op, dbo, uo, line_count):
         'reference': sale_invoice.name,
         'currency_id': sale_invoice.currency_id.id
     }
+    click.echo('+ Creating voucher')
     voucher_id = con.execute('account.voucher', 'create', voucher_data)
     con.env['account.voucher'].browse(voucher_id)
     for ln in sale_invoice.move_id:
         con.execute('account.voucher.line', 'create',
-                    {'name': name, 'amount': amount,
-                     'voucher_id': voucher_id,
-                     'partner_id': partner.id,
-                     'account_id': account.id,
-                     'currency_id': sale_invoice.currency_id.id,
-                     'move_line_id': ln.line_id.id})
+                    {
+                        'name': name, 'amount': amount,
+                        'voucher_id': voucher_id,
+                        'partner_id': partner.id,
+                        'account_id': account.id,
+                        'currency_id': sale_invoice.currency_id.id,
+                        'move_line_id': ln.line_id.id
+                    })
     con.execute('account.voucher', 'button_proforma_voucher', [voucher_id])
+    click.echo('+ Process Completed')
 
 if __name__ == '__main__':
     duplicate_sale_order()
